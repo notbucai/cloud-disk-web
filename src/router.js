@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from './views/Home.vue'
+import Objs from './views/objs/Objs.vue'
 
 Vue.use(Router)
 
@@ -8,9 +8,13 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: Home
+      path:'/',
+      redirect:'/objs'
+    },
+    {
+      path: '/objs',
+      name: 'objs',
+      component: Objs
     },
     {
       path: '/about',

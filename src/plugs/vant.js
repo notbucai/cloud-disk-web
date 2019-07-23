@@ -1,4 +1,26 @@
 import Vue from 'vue';
 import { Button } from 'vant';
+import { Panel } from 'vant';
+import { Cell, CellGroup } from 'vant';
+import { Icon } from 'vant';
+import { Checkbox, CheckboxGroup } from 'vant';
+import { Search } from 'vant';
+import { Tabbar, TabbarItem } from 'vant';
+import { NavBar } from 'vant';
+import { SwipeCell } from 'vant';
+import { PullRefresh } from 'vant';
+import { Dialog } from 'vant';
+import { Field } from 'vant';
 
+Vue.use(Field);
+Vue.use(Dialog);
+Vue.use(PullRefresh);
+Vue.use(SwipeCell);
+Vue.use(NavBar);
+Vue.use(Tabbar).use(TabbarItem);
+Vue.use(Search);
+Vue.use(Checkbox).use(CheckboxGroup);
+Vue.use(Icon);
+Vue.use(Cell).use(CellGroup);
+Vue.use(Panel);
 Vue.use(Button);
