@@ -11,7 +11,11 @@ import { SwipeCell } from 'vant';
 import { PullRefresh } from 'vant';
 import { Dialog } from 'vant';
 import { Field } from 'vant';
+import { Uploader } from 'vant';
+import { Circle } from 'vant';
 
+Vue.use(Circle);
+Vue.use(Uploader);
 Vue.use(Field);
 Vue.use(Dialog);
 Vue.use(PullRefresh);

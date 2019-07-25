@@ -6,8 +6,18 @@
       @click-left="onClickLeft"
     >
       <div slot="right">
-        <van-button plain round hairline type="default" size="mini" icon="plus"></van-button>
-        <van-button plain round hairline type="primary" size="mini" icon="upgrade"></van-button>
+        <van-button
+          plain
+          round
+          hairline
+          type="default"
+          size="mini"
+          icon="plus"
+          @click="createFolder.show = true"
+        ></van-button>
+        <van-uploader :after-read="handleUploadFile" :preview-image="false">
+          <van-button plain round hairline type="primary" size="mini" icon="upgrade"></van-button>
+        </van-uploader>
       </div>
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
@@ -17,7 +27,7 @@
           <van-cell
             @click="handleGo(item)"
             :title="item.key_x"
-            :label="dateParse(item.LastModified)"
+            :label="$utils.dateParse(item.LastModified)"
             :center="true"
             :key="item.Key"
           >
@@ -44,28 +54,86 @@
       </div>
     </van-pull-refresh>
 
-    <van-dialog v-model="show" show-cancel-button>
-      <CreateFolder />
+    <!-- 创建目录 -->
+    <van-dialog
+      v-model="createFolder.show"
+      @confirm="handleCreateFolder"
+      @cancel="createFolder.value=''"
+      :before-close="(action, done) => action === 'confirm'?done(false):done()"
+      show-cancel-button
+    >
+      <div class="create">
+        <van-panel>
+          <van-field
+            label="目录名"
+            v-model="createFolder.value"
+            required
+            clearable
+            placeholder="请输入目录名"
+            :error="createFolder.error"
+            :error-message="createFolder.errorMsg"
+          />
+        </van-panel>
+      </div>
+    </van-dialog>
+
+    <!-- 上传文件 -->
+    <van-dialog
+      v-model="uploading.show"
+      @confirm="handleCreateFolder"
+      @cancel="uploading.value=''"
+      :before-close="handleUnUploadFile"
+      show-cancel-button
+      :showConfirmButton="false"
+    >
+      <div style="text-align: center;padding:6px 16px">
+        <p>上传中</p>
+        <van-circle
+          v-model="uploading.currentRate"
+          color="#07c160"
+          layer-color="#ebedf0"
+          :rate="uploading.currentRate"
+          :speed="100"
+          :text="uploading.currentRate + '%'"
+          :stroke-width="60"
+          size="150px"
+        />
+        <h3>{{uploading.title}}</h3>
+      </div>
     </van-dialog>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
-import suffix from "file-suffix";
-import { format } from "date-fns";
-import CreateFolder from "./components/CreateFolder.vue";
 export default {
   name: "objs",
   data() {
     return {
       searchVal: "",
       isLoading: false,
-      currentUrl: "",
-      show: true
+      createFolder: {
+        show: false,
+        value: "",
+        errorMsg: "",
+        error: false
+      },
+      uploading: {
+        show: false,
+        value: "",
+        currentRate: 0,
+        rate: 100,
+        title: "文件名"
+      }
     };
   },
-  components: { CreateFolder },
+  watch: {
+    "createFolder.value"() {
+      this.createFolder.errorMsg = "";
+      this.createFolder.error = false;
+    }
+  },
+  components: {},
   computed: {
     ...mapState({
       objs: state => state.cos.objs
@@ -73,7 +141,7 @@ export default {
     currentObjs() {
       const { $route, objs } = this;
       const { url } = $route.query;
-      const data = (url || "").split("/").reduce((prve, current, index) => {
+      const data = (url || "").split("/").reduce((prve, current) => {
         if (current.length === 0) {
           return prve;
         }
@@ -88,10 +156,36 @@ export default {
   },
   mounted() {},
   methods: {
+    // 取消上传文件
+    handleUnUploadFile(action, done) {
+      // 取消上传文件
+      done();
+    },
+    // 上传文件
+    handleUploadFile(file) {
+      // 文件上传
+      this.uploading.show = true;
+      this.uploading.title = file.file.name;
+    },
+    // 创建文件夹
+    handleCreateFolder() {
+      const { value } = this.createFolder;
+      // TODO 发送 创建目录请求 并更新 所有目录
+      // 我觉得可以直接放在vuex action 中
+      /* eslint-disable */
+      const reg = /^[^\\/:\*\?""<>|]{1,120}$/;
+      if (!reg.test(value)) {
+        this.createFolder.error = true;
+        this.createFolder.errorMsg = "格式错误";
+        return;
+      }
+
+      this.createFolder.show = false;
+    },
     onClickLeft() {
       let url = this.$route.query.url || "";
       if (url.indexOf("/") !== -1) {
-        url = url.replace(/\/([^\/]+?)$/, "");
+        url = url.replace(/\/([^(/)]+?)$/, "");
       } else {
         url = undefined;
       }
@@ -106,64 +200,12 @@ export default {
           : obj.key_x;
         this.$router.push({ name: "objs", query: { url } });
       } else {
+        this.$router.push({ name: "obj", query: { url: obj.Key } });
       }
     },
-    dateParse(dateStr) {
-      const date = new Date(dateStr);
-      return format(date, "YYYY-DD-MM HH:mm:ss");
-    },
+    
     getObjTypeIcon(type, key) {
-      let iconName = "#icon-file-b-2";
-      if (type === 2) {
-        switch (suffix(key)) {
-          case "png":
-          case "jpg":
-          case "jpeg":
-          case "gif":
-            iconName = "#icon-file-b-6";
-            break;
-          case "psd":
-            iconName = "#icon-file-b-11";
-            break;
-          case "zip":
-          case "rar":
-          case "7z":
-            iconName = "#icon-file-b-4";
-            break;
-          case "pdf":
-            iconName = "#icon-file-b-14";
-            break;
-          case "doc":
-          case "docx":
-          case "pages":
-            iconName = "#icon-file-b-1";
-            break;
-          case "xls":
-          case "xlsx":
-            iconName = "#icon-file-b-5";
-            break;
-          case "ppt":
-            iconName = "#icon-file-b-";
-            break;
-          case "mp4":
-            iconName = "#icon-file-b-9";
-            break;
-          case "mp3":
-            iconName = "#icon-file-b-3";
-            break;
-          case "txt":
-            iconName = "#icon-file-b-7";
-            break;
-          case "html":
-            iconName = "#icon-file-b-16";
-            break;
-          default:
-            iconName = "#icon-file-b-8";
-            break;
-        }
-      }
-
-      return iconName;
+      return this.$utils.getObjTypeIcon(type, key);
     }
   }
 };

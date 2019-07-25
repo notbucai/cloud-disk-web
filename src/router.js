@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Objs from './views/objs/Objs.vue'
+import Obj from './views/obj/Obj.vue'
 
 Vue.use(Router)
 
@@ -15,6 +16,11 @@ export default new Router({
       path: '/objs',
       name: 'objs',
       component: Objs
+    },
+    {
+      path: '/obj',
+      name: 'obj',
+      component: Obj
     },
     {
       path: '/about',
