@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Objs from './views/objs/Objs.vue'
 import Obj from './views/obj/Obj.vue'
+import Search from './views/search/Search.vue'
 
 Vue.use(Router)
 
@@ -21,6 +22,11 @@ export default new Router({
       path: '/obj',
       name: 'obj',
       component: Obj
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: Search
     },
     {
       path: '/about',

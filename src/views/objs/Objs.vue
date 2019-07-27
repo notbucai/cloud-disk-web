@@ -21,7 +21,7 @@
       </div>
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
-      <van-search v-model="searchVal" placeholder="请输入搜索关键词" shape="round"></van-search>
+      <van-search v-model="searchVal" @click="$router.push('/search')" placeholder="请输入搜索关键词" shape="round" disabled></van-search>
       <template v-for="item in currentObjs.children">
         <van-swipe-cell :key="item.Key">
           <van-cell
@@ -50,7 +50,9 @@
           <use xlink:href="#icon-file-s-" />
         </svg>
         <p>暂无文件，赶快上传吧</p>
-        <van-button round type="primary" text=" 上传文件 " size="normal" />
+        <van-uploader :after-read="handleUploadFile" :preview-image="false">
+          <van-button round type="primary" text=" 上传文件 " size="normal" />
+        </van-uploader>
       </div>
     </van-pull-refresh>
 
@@ -203,7 +205,7 @@ export default {
         this.$router.push({ name: "obj", query: { url: obj.Key } });
       }
     },
-    
+
     getObjTypeIcon(type, key) {
       return this.$utils.getObjTypeIcon(type, key);
     }
