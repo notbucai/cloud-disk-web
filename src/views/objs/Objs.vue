@@ -21,31 +21,9 @@
       </div>
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
-      <van-search v-model="searchVal" @click="$router.push('/search')" placeholder="请输入搜索关键词" shape="round" disabled></van-search>
-      <template v-for="item in currentObjs.children">
-        <van-swipe-cell :key="item.Key">
-          <van-cell
-            @click="handleGo(item)"
-            :title="item.key_x"
-            :label="$utils.dateParse(item.LastModified)"
-            :center="true"
-            :key="item.Key"
-          >
-            <svg
-              slot="icon"
-              class="icon"
-              style="font-size:30px;margin-right:10px;"
-              aria-hidden="true"
-            >
-              <use :xlink:href="getObjTypeIcon(item.type,item.key_x)" />
-            </svg>
-          </van-cell>
-          <template slot="right">
-            <van-button square type="danger" text="删除" style="height:100%" />
-          </template>
-        </van-swipe-cell>
-      </template>
-      <div class="info" v-if="!currentObjs.children">
+      <van-search @click="$router.push('/search')" placeholder="请输入搜索关键词" shape="round" disabled></van-search>
+      <List v-if="currentObjs.children" :objs="currentObjs.children" />
+      <div class="info" v-else>
         <svg slot="icon" class="icon" style="font-size:100px;" aria-hidden="true">
           <use xlink:href="#icon-file-s-" />
         </svg>
@@ -108,11 +86,11 @@
 
 <script>
 import { mapState } from "vuex";
+import List from "@/components/List.vue";
 export default {
   name: "objs",
   data() {
     return {
-      searchVal: "",
       isLoading: false,
       createFolder: {
         show: false,
@@ -135,7 +113,7 @@ export default {
       this.createFolder.error = false;
     }
   },
-  components: {},
+  components: { List },
   computed: {
     ...mapState({
       objs: state => state.cos.objs
@@ -195,20 +173,7 @@ export default {
       this.$router.push({ name: "objs", query: { url } });
     },
     onRefresh() {},
-    handleGo(obj) {
-      if (obj.type === 1) {
-        const url = this.$route.query.url
-          ? this.$route.query.url + "/" + obj.key_x
-          : obj.key_x;
-        this.$router.push({ name: "objs", query: { url } });
-      } else {
-        this.$router.push({ name: "obj", query: { url: obj.Key } });
-      }
-    },
-
-    getObjTypeIcon(type, key) {
-      return this.$utils.getObjTypeIcon(type, key);
-    }
+    
   }
 };
 </script>
