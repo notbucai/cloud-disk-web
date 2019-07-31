@@ -52,15 +52,27 @@ export default new Router({
     },
     {
       path: '/login',
-      component: Login
+      component: Login,
+      meta: {
+        title: "登陆",
+        noTabbar: true
+      }
     },
     {
       path: '/reg',
-      component: Register
+      component: Register,
+      meta: {
+        title: "注册",
+        noTabbar: true
+      }
     },
     {
       path: '/user/repwd',
-      component: Repwd
+      component: Repwd,
+      meta: {
+        title: "重置密码",
+        noTabbar: true
+      }
     },
   ]
 })

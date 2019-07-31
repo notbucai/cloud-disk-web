@@ -1,12 +1,12 @@
 <template>
   <div class="repwd">
-    <van-nav-bar title="修改/找回密码" />
+    <van-nav-bar left-arrow @click-left="$router.push('/')" title="修改/找回密码" />
     <van-steps :active="active" active-color="#38f">
       <van-step>获取验证码</van-step>
       <van-step>确认修改</van-step>
     </van-steps>
 
-    <div class="main">
+    <div class="firstPage" v-if="active===0">
       <van-cell-group>
         <van-field
           v-model="obj.phone"
@@ -34,13 +34,38 @@
           center
           clearable
           label="验证码"
+          type="number"
           placeholder="请输入短信验证码"
+        />
+      </van-cell-group>
+    </div>
+    <div class="secondPage" v-if="active===1">
+      <van-cell-group>
+        <van-field
+          v-model="obj.password"
+          minlength="6"
+          required
+          center
+          clearable
+          label="密码"
+          type="password"
+          placeholder="请输入新密码"
+          @blur="handleFocus('password')"
+        ></van-field>
+        <van-field
+          type="password"
+          v-model="obj.repassword"
+          required
+          center
+          clearable
+          label="校验密码"
+          placeholder="请再输入一次密码"
         />
       </van-cell-group>
     </div>
 
     <div class="btn">
-      <van-button type="info" size="large" @click="handleNext">下一步</van-button>
+      <van-button type="info" size="large" @click="handleNext">{{active==0?'下一步':'确定'}}</van-button>
     </div>
   </div>
 </template>
@@ -58,7 +83,9 @@ export default {
       },
       obj: {
         phone: "",
-        code: ""
+        code: "",
+        password: "",
+        repassword: ""
       }
     };
   },
@@ -111,6 +138,22 @@ export default {
             return;
           }
           this.active = 1;
+          break;
+        case 1:
+          if (
+            !this.obj.phone ||
+            !this.obj.code ||
+            !this.obj.password ||
+            !this.obj.repassword
+          ) {
+            this.$notify("参数错误");
+            return;
+          }
+          if (this.obj.password !== this.obj.repassword) {
+            this.$notify("两次密码不匹配");
+            return;
+          }
+          // TODO 发送AJAX
           break;
 
         default:
