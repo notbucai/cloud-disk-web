@@ -3,7 +3,7 @@
     <van-nav-bar title="注册" />
     <div class="main">
       <van-cell-group>
-        <van-field label="用户名" v-model="objData.username" placeholder="请输入用户名" />
+        <van-field label="用户名" v-model="objData.username" placeholder="请输入用户名/英文数字" />
         <van-cell-group>
           <van-field
             v-model="objData.phone"
@@ -62,7 +62,7 @@ export default {
   },
   methods: {
     async handleSend() {
-      if (!/^[1][3,4,5,7,8][0-9]{9}$/.test(this.objData.phone)) {
+      if (!/^[1][3,4,5,7,8,9][0-9]{9}$/.test(this.objData.phone)) {
         this.$notify("手机号格式错误");
         return;
       }
@@ -89,7 +89,7 @@ export default {
     },
     async _handleSendCode() {
       if (this.fromV.codeloading === true) return;
-      if (!/^[1][3,4,5,7,8][0-9]{9}$/.test(this.objData.phone)) {
+      if (!/^[1][3,4,5,7,8,9][0-9]{9}$/.test(this.objData.phone)) {
         this.$notify("手机号格式错误");
         return;
       }
