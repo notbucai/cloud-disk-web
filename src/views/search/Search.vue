@@ -33,7 +33,7 @@
     <!-- 结果展示 -->
     <div class="result" v-else>
       <div class="title">
-        <van-cell :title="`包含 ${searchVal} 的文件( ${searchResult.length} )`" />
+        <van-cell :title="`包含 ${searchVal} 的文件( ${currentList.length} )`" />
       </div>
       <div>
         <div class="loading" v-if="isloading">

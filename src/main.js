@@ -11,7 +11,7 @@ import './assets/common/common.css'
 authentication(router, store);
 console.log("mode=> " + process.env.NODE_ENV);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = true;
 
 new Vue({
   router,
