@@ -30,12 +30,23 @@ export default {
     };
   },
   methods: {
-    handleSend() {
+    async handleSend() {
       if (!this.objData.loginname || !this.objData.password) {
         this.$notify("参数错误");
         return;
       }
       // TODO 发送请求
+      const { data } = await this.$service.user.login(this.objData);
+      if (data.code === 0) {
+        // 登陆成功 显示消息
+        this.$notify({ background: "#1989fa", message: data.message });
+        // 将 token 保存到vuex
+        this.$store.dispatch("user/setToken", data.token);
+        // 跳转到首页
+        this.$router.push('/');
+      } else {
+        this.$notify(data.message);
+      }
     }
   }
 };

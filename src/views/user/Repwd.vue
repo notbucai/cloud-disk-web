@@ -9,7 +9,7 @@
     <div class="firstPage" v-if="active===0">
       <van-cell-group>
         <van-field
-          v-model="obj.phone"
+          v-model="objData.phone"
           maxlength="11"
           required
           center
@@ -28,7 +28,7 @@
           >{{fromV.codeBtn}}</van-button>
         </van-field>
         <van-field
-          v-model="obj.code"
+          v-model="objData.code"
           maxlength="6"
           required
           center
@@ -42,7 +42,7 @@
     <div class="secondPage" v-if="active===1">
       <van-cell-group>
         <van-field
-          v-model="obj.password"
+          v-model="objData.password"
           minlength="6"
           required
           center
@@ -54,7 +54,7 @@
         ></van-field>
         <van-field
           type="password"
-          v-model="obj.repassword"
+          v-model="objData.repassword"
           required
           center
           clearable
@@ -81,7 +81,7 @@ export default {
         codeBtn: "获取验证码",
         codeloading: false
       },
-      obj: {
+      objData: {
         phone: "",
         code: "",
         password: "",
@@ -90,7 +90,7 @@ export default {
     };
   },
   watch: {
-    "obj.phone"() {
+    "objData.phone"() {
       this.fromV.errmsg = "";
     }
   },
@@ -102,7 +102,7 @@ export default {
     handleValidation_phone() {
       const reg = /^[1][3,4,5,7,8][0-9]{9}$/;
 
-      if (!reg.test(this.obj.phone)) {
+      if (!reg.test(this.objData.phone)) {
         this.fromV.errmsg = "手机号格式错误";
         return false;
       }
@@ -116,6 +116,20 @@ export default {
 
       // await this.SendCode();
       // TODO 调用api 获取验证码
+      const { data } = await this.$service.user.code(this.objData.phone);
+
+      if (data.code === 0) {
+        // 登陆成功 显示消息
+        this.$notify({ background: "#1989fa", message: data.message });
+        if (data.data && data.data.code) {
+          this.objData.code = data.data.code;
+        }
+      } else {
+        this.$notify(data.message);
+        this.fromV.codeloading = false;
+        this.fromV.codeBtn = "再来一遍";
+        return;
+      }
 
       let codeNum = 60;
       this.fromV.codeBtn = codeNum--;
@@ -129,11 +143,11 @@ export default {
         }
       }, 1000);
     },
-    handleNext() {
+    async handleNext() {
       switch (this.active) {
         case 0:
           // 验证码
-          if (!this.handleValidation_phone() || !this.obj.code) {
+          if (!this.handleValidation_phone() || !this.objData.code) {
             this.$notify("参数错误");
             return;
           }
@@ -141,19 +155,31 @@ export default {
           break;
         case 1:
           if (
-            !this.obj.phone ||
-            !this.obj.code ||
-            !this.obj.password ||
-            !this.obj.repassword
+            !this.objData.phone ||
+            !this.objData.code ||
+            !this.objData.password ||
+            !this.objData.repassword
           ) {
             this.$notify("参数错误");
             return;
           }
-          if (this.obj.password !== this.obj.repassword) {
+          if (this.objData.password !== this.objData.repassword) {
             this.$notify("两次密码不匹配");
             return;
           }
           // TODO 发送AJAX
+          const { data } = await this.$service.user.repwd(this.objData);
+
+          if (data.code === 0) {
+            // 登陆成功 显示消息
+            this.$notify({ background: "#1989fa", message: data.message });
+            // 跳转到登陆
+            this.$router.push("/login");
+          } else {
+            this.$notify(data.message);
+            return;
+          }
+
           break;
 
         default:

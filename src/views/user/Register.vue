@@ -61,28 +61,57 @@ export default {
     };
   },
   methods: {
-    handleSend() {
-      if(!/^[1][3,4,5,7,8][0-9]{9}$/.test(this.objData.phone)){
-         this.$notify("手机号格式错误");
-         return;
+    async handleSend() {
+      if (!/^[1][3,4,5,7,8][0-9]{9}$/.test(this.objData.phone)) {
+        this.$notify("手机号格式错误");
+        return;
       }
-      if (!this.objData.username || !this.objData.code || !this.objData.password) {
+      if (
+        !this.objData.username ||
+        !this.objData.code ||
+        !this.objData.password
+      ) {
         this.$notify("参数错误,请检查");
         return;
       }
       // TODO 发送请求
+      const { data } = await this.$service.user.reg(this.objData);
+
+      if (data.code === 0) {
+        // 登陆成功 显示消息
+        this.$notify({ background: "#1989fa", message: data.message });
+        // 跳转到登陆
+        this.$router.push("/login");
+      } else {
+        this.$notify(data.message);
+        return;
+      }
     },
     async _handleSendCode() {
       if (this.fromV.codeloading === true) return;
-      if (!/^[1][3,4,5,7,8][0-9]{9}$/.test(this.objData.phone)){
+      if (!/^[1][3,4,5,7,8][0-9]{9}$/.test(this.objData.phone)) {
         this.$notify("手机号格式错误");
-        return ;
+        return;
       }
       this.fromV.codeloading = true;
       this.fromV.codeBtn = "获取中...";
 
       // await this.SendCode();
       // TODO 调用api 获取验证码
+      const { data } = await this.$service.user.code(this.objData.phone);
+
+      if (data.code === 0) {
+        // 登陆成功 显示消息
+        this.$notify({ background: "#1989fa", message: data.message });
+        if (data.data && data.data.code) {
+          this.objData.code = data.data.code;
+        }
+      } else {
+        this.$notify(data.message);
+        this.fromV.codeloading = false;
+        this.fromV.codeBtn = "再来一遍";
+        return;
+      }
 
       let codeNum = 60;
       this.fromV.codeBtn = codeNum--;

@@ -5,8 +5,11 @@ import store from './store'
 import './plugs/vant'
 import './plugs/utils'
 import './plugs/service/index'
-
+import authentication from './plugs/authentication'
 import './assets/common/common.css'
+
+authentication(router, store);
+console.log("mode=> " + process.env.NODE_ENV);
 
 Vue.config.productionTip = false
 

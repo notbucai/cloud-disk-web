@@ -9,8 +9,8 @@ const cos = {
     }
   },
   actions: {
-    async getAllObjs({ commit }) {
-      commit('OBJS', {});
+    async setAllObjs({ commit }, data) {
+      commit('OBJS', data);
     }
   },
   getters: {}

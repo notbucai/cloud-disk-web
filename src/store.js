@@ -12,10 +12,13 @@ export default new Vuex.Store({
   state: {
 
   },
+  getters: {
+    token: state => state.user.token
+  },
   mutations: {
 
   },
   actions: {
-    
+
   }
 })

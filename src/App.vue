@@ -9,12 +9,9 @@
 </template>
 <script>
 export default {
-  async created(){
+  async created() {
     this.handleChangeTitle();
     this.active = this.$route.name;
-    
-    
-
   },
   watch: {
     $route() {

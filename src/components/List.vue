@@ -19,10 +19,38 @@
           </svg>
         </van-cell>
         <template slot="right">
-          <van-button square type="danger" text="删除" style="height:100%" />
+          <van-button
+            v-if="item.type === 2"
+            square
+            type="info"
+            text="重命名"
+            @click="handleRenameShow(item)"
+            style="height:100%"
+          />
+          <van-button
+            square
+            type="danger"
+            text="删除"
+            @click="handleDelete(item)"
+            style="height:100%"
+          />
         </template>
       </van-swipe-cell>
     </template>
+    <!-- 创建目录 -->
+    <van-dialog
+      v-model="isshow"
+      @confirm="handleRename"
+      @cancel="handleClose"
+      :before-close="(action, done) => done()"
+      show-cancel-button
+    >
+      <div class="create">
+        <van-panel>
+          <van-field label="目录名" v-model="value" required clearable placeholder="请输入目录名" />
+        </van-panel>
+      </div>
+    </van-dialog>
   </div>
 </template>
 
@@ -33,7 +61,11 @@ export default {
     objs: Array
   },
   data() {
-    return {};
+    return {
+      current: {},
+      isshow: false,
+      value: ""
+    };
   },
   methods: {
     handleGo(obj) {
@@ -45,6 +77,52 @@ export default {
       } else {
         this.$router.push({ name: "obj", query: { url: obj.Key } });
       }
+    },
+    handleClose() {
+      this.current = {};
+      this.isshow = false;
+      this.value = "";
+    },
+    handleRenameShow(obj) {
+      this.current = obj;
+      this.isshow = true;
+      this.value = obj.key_x;
+    },
+    async handleRename() {
+      const { data } = await this.$service.cos.rename({
+        path: this.current.Key,
+        name: this.value
+      });
+      if (data.code === 0) {
+        this.$notify({
+          background: "#1989fa",
+          message: data.message
+        });
+        this.$emit("update");
+      } else {
+        this.$notify(data.message);
+      }
+    },
+    handleDelete(obj) {
+      this.$dialog
+        .confirm({
+          title: "提示",
+          message: "删除后不可恢复"
+        })
+        .then(async () => {
+          const { data } = await this.$service.cos.delete({
+            objs: [{ Key: obj.Key }]
+          });
+          if (data.code === 0) {
+            this.$notify({
+              background: "#1989fa",
+              message: data.message
+            });
+            this.$emit("update");
+          } else {
+            this.$notify(data.message);
+          }
+        });
     }
   }
 };

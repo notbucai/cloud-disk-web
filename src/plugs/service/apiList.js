@@ -8,8 +8,8 @@ export const cos = {
   upload: "/file/upload"
 };
 export const user = {
-  login: "/user/register",
-  reg: "/user/login",
+  login: "/user/login",
+  reg: "/user/register",
   repwd: "/user/repwd",
   user: "/user/user",
   code: "/code/send"

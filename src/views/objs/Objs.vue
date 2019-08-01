@@ -15,20 +15,20 @@
           icon="plus"
           @click="createFolder.show = true"
         ></van-button>
-        <van-uploader :after-read="handleUploadFile" :preview-image="false">
+        <van-uploader accept="*/*" :after-read="handleUploadFile" :preview-image="false">
           <van-button plain round hairline type="primary" size="mini" icon="upgrade"></van-button>
         </van-uploader>
       </div>
     </van-nav-bar>
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
       <van-search @click="$router.push('/search')" placeholder="请输入搜索关键词" shape="round" disabled></van-search>
-      <List v-if="currentObjs.children" :objs="currentObjs.children" />
+      <List v-if="currentObjs.children" @update="handleUpdate" :objs="currentObjs.children" />
       <div class="info" v-else>
         <svg slot="icon" class="icon" style="font-size:100px;" aria-hidden="true">
           <use xlink:href="#icon-file-s-" />
         </svg>
         <p>暂无文件，赶快上传吧</p>
-        <van-uploader :after-read="handleUploadFile" :preview-image="false">
+        <van-uploader accept="*/*" :after-read="handleUploadFile" :preview-image="false">
           <van-button round type="primary" text=" 上传文件 " size="normal" />
         </van-uploader>
       </div>
@@ -89,6 +89,9 @@ import { mapState } from "vuex";
 import List from "@/components/List.vue";
 export default {
   name: "objs",
+  created() {
+    this.handleUpdate();
+  },
   data() {
     return {
       isLoading: false,
@@ -120,6 +123,9 @@ export default {
     }),
     currentObjs() {
       const { $route, objs } = this;
+      if (!objs.children) {
+        return objs;
+      }
       const { url } = $route.query;
       const data = (url || "").split("/").reduce((prve, current) => {
         if (current.length === 0) {
@@ -134,21 +140,54 @@ export default {
       return data;
     }
   },
-  mounted() {},
   methods: {
+    // 更新
+    async handleUpdate() {
+      if (this.$store.getters.token) {
+        const { data } = await this.$service.cos.allFileAndDir();
+        if (data.code === 0) {
+          this.$store.dispatch("cos/setAllObjs", data.data);
+        }
+      }
+    },
     // 取消上传文件
     handleUnUploadFile(action, done) {
       // 取消上传文件
       done();
+      this.$service.cos.cancel && this.$service.cos.cancel();
+      this.uploading.currentRate = 0;
     },
     // 上传文件
-    handleUploadFile(file) {
+    async handleUploadFile(file) {
       // 文件上传
       this.uploading.show = true;
       this.uploading.title = file.file.name;
+      const formData = new FormData();
+      // EGG bug 传递 顺序问题
+      formData.append("path", this.currentObjs.Key);
+      formData.append("file", file.file);
+      // 发送ajax
+      const res = await this.$service.cos.upload(formData, this.handleProgress);
+      const { data } = res || {};
+
+      this.uploading.show = false;
+      if (data.code === 0) {
+        // 登陆成功 显示消息
+        this.$notify({ background: "#1989fa", message: data.message });
+        this.handleUpdate();
+      } else {
+        this.$notify(data.message || "未知错误");
+      }
+    },
+    handleProgress(progress) {
+      // 目标 / 当前
+      const { total, loaded } = progress;
+
+      const currentpProgress = (loaded / total) * 100;
+      this.uploading.currentRate = currentpProgress;
     },
     // 创建文件夹
-    handleCreateFolder() {
+    async handleCreateFolder() {
       const { value } = this.createFolder;
       // TODO 发送 创建目录请求 并更新 所有目录
       // 我觉得可以直接放在vuex action 中
@@ -159,8 +198,20 @@ export default {
         this.createFolder.errorMsg = "格式错误";
         return;
       }
-
-      this.createFolder.show = false;
+      // TODO 创建目录
+      const { data } = await this.$service.cos.createDir({
+        name: value,
+        path: this.currentObjs.Key
+      });
+      if (data.code === 0) {
+        // 登陆成功 显示消息
+        this.$notify({ background: "#1989fa", message: data.message });
+        this.handleUpdate();
+        this.createFolder.value = "";
+        this.createFolder.show = false;
+      } else {
+        this.$notify(data.message || "未知错误");
+      }
     },
     onClickLeft() {
       let url = this.$route.query.url || "";
@@ -172,8 +223,10 @@ export default {
 
       this.$router.push({ name: "objs", query: { url } });
     },
-    onRefresh() {},
-    
+    async onRefresh() {
+      await this.handleUpdate();
+      this.isLoading = false;
+    }
   }
 };
 </script>
@@ -190,6 +243,9 @@ export default {
 
 
 <style lang="scss">
+.objs {
+  margin-bottom: 60px;
+}
 .objs /deep/ .van-nav-bar .van-icon {
   color: inherit;
 }

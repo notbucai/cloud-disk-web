@@ -1,6 +1,10 @@
 import BaseSerice from './BaseSerice';
-
+import axios from 'axios';
 export default class CosSerice extends BaseSerice {
+  constructor() {
+    super();
+    this.cancel = null;
+  }
   // 获取所有文件列表
   async allFileAndDir() {
     return await this.get(this.API.cos.AllFileAndDir);
@@ -27,10 +31,17 @@ export default class CosSerice extends BaseSerice {
   }
   // 上传
   async upload(data, progressFun) {
+    const CancelToken = axios.CancelToken;
+    const slef = this;
     return await this.axios({
       method: "POST",
+      url: this.API.cos.upload,
       data,
-      onUploadProgress: progressFun
+      onUploadProgress: progressFun,
+      cancelToken: new CancelToken(function executor(c) {
+        // executor 函数接收一个 cancel 函数作为参数
+        slef.cancel = c;
+      }),
     });
   }
 }

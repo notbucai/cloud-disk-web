@@ -17,20 +17,25 @@ export default new Router({
       path: '/',
       redirect: '/objs',
       meta: {
-        title: "计协云盘"
+        title: "计协云盘",
+        auth: true
       }
     },
     {
       path: '/objs',
       name: 'objs',
       component: Objs,
+      meta: {
+        auth: true
+      }
     },
     {
       path: '/obj',
       name: 'obj',
       component: Obj,
       meta: {
-        noTabbar: true
+        noTabbar: true,
+        auth: true
       }
     },
     {
@@ -39,7 +44,8 @@ export default new Router({
       component: Search,
       meta: {
         title: "搜索",
-        noTabbar: true
+        noTabbar: true,
+        auth: true
       }
     },
     {
@@ -48,7 +54,10 @@ export default new Router({
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: About
+      component: About,
+       meta: {
+        auth: true
+      }
     },
     {
       path: '/login',
@@ -63,7 +72,7 @@ export default new Router({
       component: Register,
       meta: {
         title: "注册",
-        noTabbar: true
+        noTabbar: true,
       }
     },
     {
@@ -75,4 +84,4 @@ export default new Router({
       }
     },
   ]
-})
+});

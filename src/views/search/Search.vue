@@ -12,11 +12,22 @@
     <div class="hint" v-if="!isShow">
       <div class="title">
         <van-cell title="搜索记录">
-          <van-icon slot="right-icon" name="delete" style="line-height: inherit;" />
+          <van-icon
+            @click="handleClear"
+            slot="right-icon"
+            name="delete"
+            style="line-height: inherit;"
+          />
         </van-cell>
       </div>
       <div>
-        <van-tag v-for="item in history" :key="item" @click="handleSearch(item)" plain round>{{item}}</van-tag>
+        <van-tag
+          v-for="item in history"
+          :key="item"
+          @click="handleSearch(item)"
+          plain
+          round
+        >{{item}}</van-tag>
       </div>
     </div>
     <!-- 结果展示 -->
@@ -28,7 +39,7 @@
         <div class="loading" v-if="isloading">
           <van-loading color="#1989fa" />
         </div>
-        <List v-else :objs="searchResult" />
+        <List @update="handleUpdate" v-else :objs="currentList" />
       </div>
     </div>
   </div>
@@ -45,19 +56,24 @@ export default {
       searchVal: "",
       searchResult: [],
       history: [],
-      isloading: false,
-      obj: {
-        ...JSON.parse(
-          `{"Url":"","header":{"content-type":"image/png","content-length":"0","connection":"keep-alive","date":"Thu, 25 Jul 2019 08:14:59 GMT","etag":"a72a21e77fe61dd929c77c48355c43b0","last-modified":"Tue, 23 Jul 2019 09:14:18 GMT","server":"tencent-cos","x-cos-request-id":"NWQzOTY1MDNfNjBhYTk0MGFfMjNlOF84MzI4ZjI="}}`
-        )
-      }
+      isloading: false
     };
   },
   components: { List },
-  computed: {},
+  computed: {
+    currentList() {
+       return this.searchResult.filter(item => {
+        if (item.type === 2) {
+          return item.key_x.indexOf(this.searchVal) !== -1;
+        }
+        return false;
+      });
+    }
+  },
   created() {
     const history = JSON.parse(localStorage.getItem("history") || "[]");
     this.history = history;
+    this.handleUpdate();
   },
   mounted() {},
   watch: {
@@ -74,16 +90,30 @@ export default {
     }
   },
   methods: {
+    handleClear() {
+      this.history = [];
+    },
+    // 更新
+    async handleUpdate() {
+      if (this.$store.getters.token) {
+        const { data } = await this.$service.cos.simpleAllFileAndDir();
+        this.searchResult = data.data;
+      }
+    },
     handleSearch(val) {
       if (val) {
         this.searchVal = val;
+      }
+      if (this.searchVal === "") {
+        return;
       }
       this.history.push(this.searchVal);
       this.history = Array.from(new Set(this.history));
       setTimeout(() => {
         this.isShow = true;
       }, 0);
-    },
+      // TODO 筛选
+    }
   }
 };
 </script>

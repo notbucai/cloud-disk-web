@@ -13,7 +13,7 @@ export default class UserSerice extends BaseSerice {
   async repwd(data) {
     return await this.post(this.API.user.repwd, data);
   }
-  async code(data) {
-    return await this.post(this.API.user.code, data);
+  async code(phone) {
+    return await this.get(this.API.user.code + `?phone=${phone}`);
   }
 }
